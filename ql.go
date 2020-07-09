@@ -21,7 +21,7 @@ var operation = map[string]string{
 type CheckFun func(key, operation, v *string) error
 
 // 匹配格式为  name:op(value),name:op(value),...
-var pattern = regexp.MustCompile(`(?m)(\w+):([\w]+)\((.*?)\),*`)
+var pattern = regexp.MustCompile(`(?m)([\w\+]+):([\w]+)\((.*?)\),*`)
 
 func ConvInterface(s string) (interface{}, error) {
 	s = strings.TrimSpace(s)
@@ -62,6 +62,9 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 			}
 		}
 		key = fmt.Sprintf("`%s`", key)
+		if ps := strings.Split(key, "+"); len(ps) > 1 {
+			key = fmt.Sprintf("concat(%s)", strings.Join(ps, "`,`"))
+		}
 		switch op {
 		case "in":
 			var list []interface{}
