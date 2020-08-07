@@ -106,6 +106,26 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 			}
 			op, val = fmt.Sprintf("->'%s' = ", x), "?"
 			args = append(args, list[1])
+		case "json_in":
+			var list []interface{}
+			list, err = ConvInterfaces(val)
+			if err != nil {
+				return
+			}
+			if len(list) < 2 {
+				err = fmt.Errorf("%s json_in 缺少参数", match)
+				return
+			}
+			x, ok := list[0].(string)
+			if !ok {
+				err = errors.New("json 语法错误")
+				return
+			}
+			key = fmt.Sprintf("JSON_CONTAINS(%s", key)
+			op = fmt.Sprintf("->'%s',", x)
+			val = strings.Repeat("?, ", len(list)-1)
+			val = fmt.Sprintf("JSON_ARRAY(%s))", val[:len(val)-2])
+			args = append(args, list[1:]...)
 		default:
 			newop, ok := operation[op]
 			if !ok {
