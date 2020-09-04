@@ -106,7 +106,7 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 			}
 			key = fmt.Sprintf("JSON_CONTAINS(%s -> '%s', ?, '$')", key, x)
 			op, val = "", ""
-			args = append(args, list[1])
+			args = append(args, fmt.Sprintf("%v", list[1]))
 		case "json_in":
 			var list []interface{}
 			list, err = ConvInterfaces(val)
