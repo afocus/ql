@@ -104,7 +104,8 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 				err = errors.New("json 语法错误")
 				return
 			}
-			op, val = fmt.Sprintf("->'%s' = ", x), "?"
+			key = fmt.Sprintf("JSON_CONTAINS(%s -> '%s', ?, '$')", key, x)
+			op, val = "", ""
 			args = append(args, list[1])
 		case "json_in":
 			var list []interface{}
