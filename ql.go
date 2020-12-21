@@ -96,7 +96,7 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 				return
 			}
 			if len(list) != 2 {
-				err = fmt.Errorf("%s range 必须两个值", match)
+				err = fmt.Errorf("%s json 必须两个值", match)
 				return
 			}
 			x, ok := list[0].(string)
@@ -107,6 +107,25 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 			key = fmt.Sprintf("JSON_CONTAINS(%s -> '%s', ?, '$')", key, x)
 			op, val = "", ""
 			args = append(args, fmt.Sprintf("%v", list[1]))
+		case "json_path":
+			// $k:json_path($v,0) -> json_contains_path($k,'all',$v) = 0
+			var list []interface{}
+			list, err = ConvInterfaces(val)
+			if err != nil {
+				return
+			}
+			if len(list) != 2 {
+				err = fmt.Errorf("%s json_path 必须两个值", match)
+				return
+			}
+			x, ok := list[0].(string)
+			if !ok {
+				err = errors.New("json_path 语法错误")
+				return
+			}
+			key = fmt.Sprintf("json_contains_path(%s,'all',?) = ?", key)
+			op, val = "", ""
+			args = append(args, x, list[1])
 		case "json_in":
 			var list []interface{}
 			list, err = ConvInterfaces(val)
@@ -119,7 +138,7 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 			}
 			x, ok := list[0].(string)
 			if !ok {
-				err = errors.New("json 语法错误")
+				err = errors.New("json_path 语法错误")
 				return
 			}
 			key = fmt.Sprintf("JSON_CONTAINS(%s", key)
