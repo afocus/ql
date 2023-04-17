@@ -34,7 +34,10 @@ func ConvInterface(s string) (interface{}, error) {
 		}
 		return s[1 : len(s)-1], nil
 	}
-	return strconv.ParseFloat(s, 64)
+	if s[0] >= '0' && s[0] <= '9' {
+		return strconv.ParseFloat(s, 64)
+	}
+	return s, nil
 }
 
 func ConvInterfaces(sli string) ([]interface{}, error) {
@@ -107,6 +110,37 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 			key = fmt.Sprintf("JSON_CONTAINS(%s -> '%s', ?, '$')", key, x)
 			op, val = "", ""
 			args = append(args, fmt.Sprintf("%v", list[1]))
+		case "json_extract":
+			// field:json_extract('path',op,val...)
+			// json_extract(field,path) op val
+			var list []interface{}
+			list, err = ConvInterfaces(val)
+			if err != nil {
+				return
+			}
+			if len(list) < 3 {
+				err = fmt.Errorf("%s json_extract 必须至少3个值", match)
+				return
+			}
+			x, ok := list[0].(string)
+			if !ok {
+				err = errors.New("json 语法错误")
+				return
+			}
+			key = fmt.Sprintf("json_extract(%s -> '%s')", key, x)
+			op = list[1].(string)
+			switch op {
+			case "in":
+				val = strings.Repeat("?, ", len(list)-2)
+				val = fmt.Sprintf("(%s)", val[:len(val)-2])
+				args = append(args, list[2:]...)
+			default:
+				newop, ok := operation[op]
+				if ok {
+					val, op = "?", newop
+					args = append(args, list[2:]...)
+				}
+			}
 		case "json_path":
 			// $k:json_path($v,0) -> json_contains_path($k,'all',$v) = 0
 			var list []interface{}
