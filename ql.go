@@ -127,7 +127,7 @@ func Parse(content string, check CheckFun) (query string, args []interface{}, er
 				err = errors.New("json 语法错误")
 				return
 			}
-			key = fmt.Sprintf("json_extract(%s -> '%s')", key, x)
+			key = fmt.Sprintf("json_extract(%s , '%s')", key, x)
 			op = list[1].(string)
 			switch op {
 			case "in":
