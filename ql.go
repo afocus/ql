@@ -35,7 +35,10 @@ func ConvInterface(s string) (interface{}, error) {
 		return s[1 : len(s)-1], nil
 	}
 	if s[0] >= '0' && s[0] <= '9' {
-		return strconv.ParseFloat(s, 64)
+		if strings.Contains(s, ".") {
+			return strconv.ParseFloat(s, 64)
+		}
+		return strconv.ParseInt(s, 10, 64)
 	}
 	return s, nil
 }
